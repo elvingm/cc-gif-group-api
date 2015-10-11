@@ -1,6 +1,7 @@
 # Gif Group API
 
-This API is a basic solution for a game application where users create Gif Groups under a common theme. Responses are in JSON, and responds to the following endpoints:
+This API is a basic solution for a game application where users create Gif Groups under a common theme. The API is written in Go and backed by Redis.
+Responses are in JSON, and responds to the following endpoints:
 
 - [GET] /groups - returns all groupings of gifs
 - [GET] /groups/{id}/gifs - returns all gifs for the group matching the id specified
