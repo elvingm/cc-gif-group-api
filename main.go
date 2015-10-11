@@ -1,32 +1,31 @@
 package main
 
-import(
-    "os"
+import (
     "net/http"
+    "os"
 
-    "github.com/labstack/echo"
-    mw "github.com/labstack/echo/middleware"
+    "github.com/elvingm/cc-gifgroup-api/Godeps/_workspace/src/github.com/labstack/echo"
+    mw "github.com/elvingm/cc-gifgroup-api/Godeps/_workspace/src/github.com/labstack/echo/middleware"
 )
 
 type Group struct {
-    Id      int     `json:"id"`
-    Name    string  `json:"name"`
+    Id   int    `json:"id"`
+    Name string `json:"name"`
 }
 
 type ResponseTemplate struct {
-    Content    interface{}  `json:"content"`
-    ErrorCode  int          `json:"error_code"`
-    ErrorText  string       `json:"error_text"`
-    StatusCode int          `json:"status_code"`
-    StatusText string       `json:"status_text"`
-    Success    bool         `json:"success"`
+    Content    interface{} `json:"content"`
+    ErrorCode  int         `json:"error_code"`
+    ErrorText  string      `json:"error_text"`
+    StatusCode int         `json:"status_code"`
+    StatusText string      `json:"status_text"`
+    Success    bool        `json:"success"`
 }
 
 func main() {
     os.Setenv("apiPort", ":1323")
     e := echo.New()
 
-    
     e.Use(mw.Logger())
     e.Use(mw.Recover())
 

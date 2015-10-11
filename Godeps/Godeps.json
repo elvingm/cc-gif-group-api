@@ -1,0 +1,24 @@
+{
+	"ImportPath": "github.com/elvingm/cc-gifgroup-api",
+	"GoVersion": "go1.5.1",
+	"Deps": [
+		{
+			"ImportPath": "github.com/bradfitz/http2",
+			"Rev": "6608b73ef18668469ee5365431dc3a106502c449"
+		},
+		{
+			"ImportPath": "github.com/labstack/echo",
+			"Comment": "v1.1.0-71-gb6f754b",
+			"Rev": "b6f754b2a2be04115d36d30f8df86c00a3208784"
+		},
+		{
+			"ImportPath": "github.com/labstack/gommon/color",
+			"Comment": "v0.0.3-7-g3c61341",
+			"Rev": "3c613419957bbd5afea3fc87bbc0f9f2dca19196"
+		},
+		{
+			"ImportPath": "golang.org/x/net/websocket",
+			"Rev": "01256db42e5106196a3473ec1620727a383500e8"
+		}
+	]
+}
