@@ -1,6 +1,7 @@
 package main
 
 import(
+    "os"
     "net/http"
 
     "github.com/labstack/echo"
@@ -22,7 +23,9 @@ type ResponseTemplate struct {
 }
 
 func main() {
+    os.Setenv("apiPort", ":1323")
     e := echo.New()
+
     
     e.Use(mw.Logger())
     e.Use(mw.Recover())
@@ -33,7 +36,7 @@ func main() {
     e.Post("/groups", createGroup)
     e.Post("/groups/:id/gifs", createGifInGroup)
 
-    e.Run(":1323")
+    e.Run(os.Getenv("apiPort"))
 }
 
 func getAllGroups(c *echo.Context) error {
