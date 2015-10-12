@@ -9,7 +9,13 @@ Responses are in JSON, and responds to the following endpoints:
 - [POST] /groups/{id}/gifs - creates a new gif within the group matching the id specified
 
 # Setup
-[setup instructions once application is up and running]
+In order to get the api running locally:
+
+ 1. `git clone` this repo
+ 2. `cd cc-gifgroup-api`
+ 3. `godep go install`
+ 4. `cc-gifgroup-api`
+ 5. `curl http://localhost:1323/groups`
 
 # Response Format
 Response format will be in JSON, and follow the structure below:
