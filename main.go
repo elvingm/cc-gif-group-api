@@ -56,20 +56,16 @@ func getAllGroups(c *echo.Context) error {
     defer rC.Close()
 
     groupKeys, err := rC.Do("KEYS", "group:*")
-    if err != nil {
-        panic(err)
-    }
+    ErrorHandler(err)
 
     for _, k := range groupKeys.([]interface{}) {
         var group Group
 
         result, err := rC.Do("GET", k.([]byte))
-        if err != nil {
-            panic(err)
-        }
+        ErrorHandler(err)
 
         if err := json.Unmarshal(result.([]byte), &group); err != nil {
-            panic(err)
+            ErrorHandler(err)
         }
         groups = append(groups, group)
     }
@@ -92,14 +88,10 @@ func createGroup(c *echo.Context) error {
     defer rC.Close()
 
     gJson, err := json.Marshal(g)
-    if err != nil {
-        panic(err)
-    }
+    ErrorHandler(err)
 
     _, err = rC.Do("SET", "group:" + strconv.Itoa(g.Id), gJson)
-    if err != nil {
-        panic(err)
-    }
+    ErrorHandler(err)
 
     groupSeq++
     res.Content = g // returns group info that was saved
@@ -114,8 +106,13 @@ func createGifInGroup(c *echo.Context) error {
 
 func RedisConnection() redis.Conn {
     c, err := redis.Dial("tcp", os.Getenv("redisPort"))
+    ErrorHandler(err)
+    return c
+}
+
+// Handler
+func ErrorHandler(err error) {
     if err != nil {
         panic(err)
     }
-    return c
 }
