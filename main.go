@@ -1,8 +1,10 @@
 package main
 
 import (
+    "encoding/json"
     "net/http"
     "os"
+    "strconv"
 
     "github.com/elvingm/cc-gifgroup-api/Godeps/_workspace/src/github.com/labstack/echo"
     mw "github.com/elvingm/cc-gifgroup-api/Godeps/_workspace/src/github.com/labstack/echo/middleware"
@@ -15,6 +17,8 @@ type Group struct {
     Name string `json:"name"`
 }
 
+type Groups []Group
+
 type ResponseTemplate struct {
     Content    interface{} `json:"content"`
     ErrorCode  int         `json:"error_code"`
@@ -24,8 +28,12 @@ type ResponseTemplate struct {
     Success    bool        `json:"success"`
 }
 
+var groupSeq = 1
+
 func main() {
     os.Setenv("apiPort", ":1323")
+    os.Setenv("redisPort", ":6379")
+
     e := echo.New()
 
     e.Use(mw.Logger())
@@ -42,9 +50,31 @@ func main() {
 
 func getAllGroups(c *echo.Context) error {
     res := ResponseTemplate{}
-    groupSlice := []Group{{1, "Foo"}, {2, "Bar"}}
+    var groups Groups
 
-    res.Content = groupSlice
+    rC := RedisConnection()
+    defer rC.Close()
+
+    groupKeys, err := rC.Do("KEYS", "group:*")
+    if err != nil {
+        panic(err)
+    }
+
+    for _, k := range groupKeys.([]interface{}) {
+        var group Group
+
+        result, err := rC.Do("GET", k.([]byte))
+        if err != nil {
+            panic(err)
+        }
+
+        if err := json.Unmarshal(result.([]byte), &group); err != nil {
+            panic(err)
+        }
+        groups = append(groups, group)
+    }
+
+    res.Content = groups
     return c.JSON(http.StatusOK, res)
 }
 
@@ -56,10 +86,23 @@ func getGroupGifs(c *echo.Context) error {
 
 func createGroup(c *echo.Context) error {
     res := ResponseTemplate{}
-    group := Group{}
+    g := Group{groupSeq, c.Form("name")}
+    
+    rC := RedisConnection()
+    defer rC.Close()
 
-    // save to Redis when created
-    res.Content = group
+    gJson, err := json.Marshal(g)
+    if err != nil {
+        panic(err)
+    }
+
+    _, err = rC.Do("SET", "group:" + strconv.Itoa(g.Id), gJson)
+    if err != nil {
+        panic(err)
+    }
+
+    groupSeq++
+    res.Content = g // returns group info that was saved
     return c.JSON(http.StatusOK, res)
 }
 
@@ -67,4 +110,12 @@ func createGifInGroup(c *echo.Context) error {
     res := ResponseTemplate{}
 
     return c.JSON(http.StatusOK, res)
+}
+
+func RedisConnection() redis.Conn {
+    c, err := redis.Dial("tcp", os.Getenv("redisPort"))
+    if err != nil {
+        panic(err)
+    }
+    return c
 }
