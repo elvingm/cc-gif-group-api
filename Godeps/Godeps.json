@@ -7,6 +7,14 @@
 			"Rev": "6608b73ef18668469ee5365431dc3a106502c449"
 		},
 		{
+			"ImportPath": "github.com/garyburd/redigo/internal",
+			"Rev": "764a32c188f6ce0bc2565349f0125b3ad4021ea9"
+		},
+		{
+			"ImportPath": "github.com/garyburd/redigo/redis",
+			"Rev": "764a32c188f6ce0bc2565349f0125b3ad4021ea9"
+		},
+		{
 			"ImportPath": "github.com/labstack/echo",
 			"Comment": "v1.1.0-71-gb6f754b",
 			"Rev": "b6f754b2a2be04115d36d30f8df86c00a3208784"
