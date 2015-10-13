@@ -28,11 +28,27 @@ type ResponseTemplate struct {
     Success    bool        `json:"success"`
 }
 
-var groupSeq = 1
+var groupSeq = 1 // default
+
+func init() { // connect to Redis on init, and get highest group ID
+    os.Setenv("redisPort", ":6379")
+
+    rC := RedisConnection()
+    defer rC.Close()
+
+    reply, err := redis.Int(rC.Do("GET", "id:groups"))
+    if err != nil {
+        _, err := rC.Do("SET", "id:groups", 1) // initialize if doesn't exist
+        ErrorHandler(err)
+
+        reply = 1
+    }
+
+    groupSeq = reply
+}
 
 func main() {
     os.Setenv("apiPort", ":1323")
-    os.Setenv("redisPort", ":6379")
 
     e := echo.New()
 
@@ -49,7 +65,6 @@ func main() {
 }
 
 func getAllGroups(c *echo.Context) error {
-    res := ResponseTemplate{}
     var groups Groups
 
     rC := RedisConnection()
@@ -62,7 +77,7 @@ func getAllGroups(c *echo.Context) error {
         var group Group
 
         result, err := rC.Do("GET", k.([]byte))
-        ErrorHandler(err)
+        ErrorHandler(err) // TODO: handle error here or return error code?
 
         if err := json.Unmarshal(result.([]byte), &group); err != nil {
             ErrorHandler(err)
@@ -70,7 +85,13 @@ func getAllGroups(c *echo.Context) error {
         groups = append(groups, group)
     }
 
+    res := ResponseTemplate{} // TODO: DRY out repetition of setting response values
     res.Content = groups
+    res.ErrorCode = 0
+    res.ErrorText = "No Error"
+    res.StatusCode = http.StatusOK
+    res.StatusText = "OK"
+    res.Success = true
     return c.JSON(http.StatusOK, res)
 }
 
@@ -81,20 +102,28 @@ func getGroupGifs(c *echo.Context) error {
 }
 
 func createGroup(c *echo.Context) error {
-    res := ResponseTemplate{}
     g := Group{groupSeq, c.Form("name")}
-    
+
     rC := RedisConnection()
     defer rC.Close()
 
     gJson, err := json.Marshal(g)
     ErrorHandler(err)
 
-    _, err = rC.Do("SET", "group:" + strconv.Itoa(g.Id), gJson)
+    _, err = rC.Do("SET", "group:"+strconv.Itoa(g.Id), gJson)
     ErrorHandler(err)
 
-    groupSeq++
-    res.Content = g // returns group info that was saved
+    reply, err := redis.Int(rC.Do("INCR", "id:groups"))
+    ErrorHandler(err)
+
+    groupSeq = reply
+    res := ResponseTemplate{}
+    res.Content = g // returns group info that was saved - return total_count?
+    res.ErrorCode = 0
+    res.ErrorText = "No Error"
+    res.StatusCode = http.StatusOK
+    res.StatusText = "OK"
+    res.Success = true
     return c.JSON(http.StatusOK, res)
 }
 
