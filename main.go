@@ -1,8 +1,8 @@
 package main
 
 import (
-    "fmt"
     "encoding/json"
+    "fmt"
     "io/ioutil"
     "net/http"
     "os"
@@ -14,12 +14,13 @@ import (
     "github.com/elvingm/cc-gifgroup-api/Godeps/_workspace/src/github.com/garyburd/redigo/redis"
     "github.com/elvingm/cc-gifgroup-api/Godeps/_workspace/src/github.com/mitchellh/goamz/aws"
     "github.com/elvingm/cc-gifgroup-api/Godeps/_workspace/src/github.com/mitchellh/goamz/s3"
+    "github.com/elvingm/cc-gifgroup-api/Godeps/_workspace/src/github.com/tmilewski/goenv"
 )
 
 type Group struct {
-    Id            int    `json:"id"`
-    Name          string `json:"name"`
-    ImageUrl      string `json:"group_image_url"`
+    Id       int    `json:"id"`
+    Name     string `json:"name"`
+    ImageUrl string `json:"group_image_url"`
 }
 
 type Groups []Group
@@ -243,7 +244,7 @@ func SaveGroupImage(req *http.Request, g *Group, res *ResponseTemplate) error {
 
         return err
     }
-    
+
     g.ImageUrl = bucket.URL(path)
     return nil
 }

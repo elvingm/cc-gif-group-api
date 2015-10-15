@@ -33,6 +33,11 @@
 			"Rev": "caaaea8b30ee15616494ee68abd5d8ebbbef05cf"
 		},
 		{
+			"ImportPath": "github.com/tmilewski/goenv",
+			"Comment": "v1.0.0",
+			"Rev": "c7da341302c5a0c97a2ac2c2cce8d4bdc827ca16"
+		},
+		{
 			"ImportPath": "github.com/vaughan0/go-ini",
 			"Rev": "a98ad7ee00ec53921f08832bc06ecf7fd600e6a1"
 		},
