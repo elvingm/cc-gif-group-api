@@ -1,8 +1,8 @@
 package main
 
 import (
-    "fmt"
     "encoding/json"
+    "fmt"
     "io/ioutil"
     "net/http"
     "os"
@@ -14,12 +14,13 @@ import (
     "github.com/elvingm/cc-gifgroup-api/Godeps/_workspace/src/github.com/garyburd/redigo/redis"
     "github.com/elvingm/cc-gifgroup-api/Godeps/_workspace/src/github.com/mitchellh/goamz/aws"
     "github.com/elvingm/cc-gifgroup-api/Godeps/_workspace/src/github.com/mitchellh/goamz/s3"
+    "github.com/elvingm/cc-gifgroup-api/Godeps/_workspace/src/github.com/tmilewski/goenv"
 )
 
 type Group struct {
-    Id            int    `json:"id"`
-    Name          string `json:"name"`
-    ImageUrl      string `json:"group_image_url"`
+    Id       int    `json:"id"`
+    Name     string `json:"name"`
+    ImageUrl string `json:"group_image_url"`
 }
 
 type Groups []Group
@@ -36,7 +37,11 @@ type ResponseTemplate struct {
 var groupSeq = 1 // default
 
 func init() { // connect to Redis on init, and get highest group ID
-    os.Setenv("redisPort", ":6379")
+    err := goenv.Load()
+    if err != nil {
+        fmt.Println("Missing environment variables file")
+        os.Exit(1)
+    }
 
     rC := RedisConnection()
     defer rC.Close()
@@ -53,10 +58,6 @@ func init() { // connect to Redis on init, and get highest group ID
 }
 
 func main() {
-    os.Setenv("apiPort", ":1323")
-    os.Setenv("AWS_ACCESS_KEY_ID", "abc") // placeholders until replaced with env management
-    os.Setenv("AWS_SECRET_ACCESS_KEY", "123")
-
     e := echo.New()
 
     e.Use(mw.Logger())
@@ -68,7 +69,7 @@ func main() {
     e.Post("/groups", PostGroups)
     e.Post("/groups/:id/gifs", createGifInGroup)
 
-    e.Run(os.Getenv("apiPort"))
+    e.Run(os.Getenv("API_PORT"))
 }
 
 func GetGroups(c *echo.Context) error {
@@ -135,7 +136,7 @@ func createGifInGroup(c *echo.Context) error {
 }
 
 func RedisConnection() redis.Conn {
-    c, err := redis.Dial("tcp", os.Getenv("redisPort"))
+    c, err := redis.Dial("tcp", os.Getenv("REDIS_PORT"))
     ErrorHandler(err)
     return c
 }
@@ -243,7 +244,7 @@ func SaveGroupImage(req *http.Request, g *Group, res *ResponseTemplate) error {
 
         return err
     }
-    
+
     g.ImageUrl = bucket.URL(path)
     return nil
 }
