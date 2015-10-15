@@ -72,34 +72,26 @@ func main() {
 }
 
 func GetGroups(c *echo.Context) error {
-    var groups Groups
-
-    rC := RedisConnection()
-    defer rC.Close()
-
-    groupKeys, err := rC.Do("KEYS", "group:*")
-    ErrorHandler(err)
-
-    for _, k := range groupKeys.([]interface{}) {
-        var group Group
-
-        result, err := rC.Do("GET", k.([]byte))
-        ErrorHandler(err) // TODO: handle error here or return error code?
-
-        if err := json.Unmarshal(result.([]byte), &group); err != nil {
-            ErrorHandler(err)
-        }
-        groups = append(groups, group)
-    }
-
-    res := ResponseTemplate{} // TODO: DRY out repetition of setting response values
-    res.Content = groups
+    res := &ResponseTemplate{}
+    res.Success = true
+    res.StatusCode = http.StatusOK
+    res.StatusText = http.StatusText(http.StatusOK)
     res.ErrorCode = 0
     res.ErrorText = "No Error"
-    res.StatusCode = http.StatusOK
-    res.StatusText = "OK"
-    res.Success = true
-    return c.JSON(http.StatusOK, res)
+    
+    groups, err := FindAllGroups(res)
+    if err != nil {
+        res.StatusCode = http.StatusInternalServerError
+        res.StatusText = http.StatusText(http.StatusInternalServerError)
+        res.Success = false
+        res.ErrorCode = 3
+        res.ErrorText = "Server error finding groups"
+
+        return c.JSON(res.StatusCode, res)
+    }
+
+    res.Content = groups
+    return c.JSON(res.StatusCode, res)
 }
 
 func getGroupGifs(c *echo.Context) error {
@@ -114,8 +106,8 @@ func PostGroups(c *echo.Context) error {
     res.StatusCode = http.StatusOK
     res.ErrorCode = 0
     res.StatusText = http.StatusText(http.StatusOK)
-    res.ErrorCode = "No Error"
-    
+    res.ErrorText = "No Error"
+
     g := &Group{}
     g.Id = groupSeq
     if g.Name = "Unnamed Group"; len(c.Form("name")) > 0 {
@@ -162,6 +154,29 @@ func S3Bucket() *s3.Bucket {
     client := s3.New(auth, aws.USEast)
     b := client.Bucket("cc-gifgroup-api")
     return b
+}
+
+func FindAllGroups(res *ResponseTemplate) (Groups, error) {
+    var groups Groups
+    rC := RedisConnection()
+    defer rC.Close()
+
+    groupKeys, err := rC.Do("KEYS", "group:*")
+    ErrorHandler(err)
+
+    for _, k := range groupKeys.([]interface{}) {
+        var group Group
+
+        result, err := rC.Do("GET", k.([]byte))
+        ErrorHandler(err) // TODO: handle error here or return error code?
+
+        if err := json.Unmarshal(result.([]byte), &group); err != nil {
+            ErrorHandler(err)
+        }
+        groups = append(groups, group)
+    }
+
+    return groups, nil
 }
 
 func SaveGroup(g *Group, res *ResponseTemplate) error {
