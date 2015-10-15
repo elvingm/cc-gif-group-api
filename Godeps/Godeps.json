@@ -25,6 +25,18 @@
 			"Rev": "3c613419957bbd5afea3fc87bbc0f9f2dca19196"
 		},
 		{
+			"ImportPath": "github.com/mitchellh/goamz/aws",
+			"Rev": "caaaea8b30ee15616494ee68abd5d8ebbbef05cf"
+		},
+		{
+			"ImportPath": "github.com/mitchellh/goamz/s3",
+			"Rev": "caaaea8b30ee15616494ee68abd5d8ebbbef05cf"
+		},
+		{
+			"ImportPath": "github.com/vaughan0/go-ini",
+			"Rev": "a98ad7ee00ec53921f08832bc06ecf7fd600e6a1"
+		},
+		{
 			"ImportPath": "golang.org/x/net/websocket",
 			"Rev": "01256db42e5106196a3473ec1620727a383500e8"
 		}
