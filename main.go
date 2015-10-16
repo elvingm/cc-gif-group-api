@@ -72,13 +72,9 @@ func main() {
     e.Run(os.Getenv("API_PORT"))
 }
 
+// Route Functions 
 func GetGroups(c *echo.Context) error {
-    res := &ResponseTemplate{}
-    res.Success = true
-    res.StatusCode = http.StatusOK
-    res.StatusText = http.StatusText(http.StatusOK)
-    res.ErrorCode = 0
-    res.ErrorText = "No Error"
+    res := NewResponseTemplate()
     
     groups, err := FindAllGroups(res)
     if err != nil {
@@ -102,12 +98,7 @@ func getGroupGifs(c *echo.Context) error {
 }
 
 func PostGroups(c *echo.Context) error {
-    res := &ResponseTemplate{}
-    res.Success = true
-    res.StatusCode = http.StatusOK
-    res.ErrorCode = 0
-    res.StatusText = http.StatusText(http.StatusOK)
-    res.ErrorText = "No Error"
+    res := NewResponseTemplate()
 
     g := &Group{}
     g.Id = groupSeq
@@ -135,13 +126,13 @@ func createGifInGroup(c *echo.Context) error {
     return c.JSON(http.StatusOK, res)
 }
 
+// Util Functions 
 func RedisConnection() redis.Conn {
     c, err := redis.Dial("tcp", os.Getenv("REDIS_PORT"))
     ErrorHandler(err)
     return c
 }
 
-// Handler
 func ErrorHandler(err error) {
     if err != nil {
         panic(err)
@@ -157,6 +148,17 @@ func S3Bucket() *s3.Bucket {
     return b
 }
 
+func NewResponseTemplate() *ResponseTemplate {
+    template := &ResponseTemplate{}
+    template.Success = true
+    template.StatusCode = http.StatusOK
+    template.StatusText = http.StatusText(http.StatusOK)
+    template.ErrorCode = 0
+    template.ErrorText = "No Error"
+    return template
+}
+
+// DB Access Functions
 func FindAllGroups(res *ResponseTemplate) (Groups, error) {
     var groups Groups
     rC := RedisConnection()
