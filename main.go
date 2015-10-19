@@ -80,11 +80,13 @@ func main() {
     e.Use(mw.Logger())
     e.Use(mw.Recover())
 
+    v1 := e.Group("/api/v1")
+
     // Routes
-    e.Get("/groups", GetGroups)
-    e.Get("/groups/:id/gifs", GetGroupGifs)
-    e.Post("/groups", PostGroups)
-    e.Post("/groups/:id/gifs", PostGroupGif)
+    v1.Get("/groups", GetGroups)
+    v1.Get("/groups/:id/gifs", GetGroupGifs)
+    v1.Post("/groups", PostGroups)
+    v1.Post("/groups/:id/gifs", PostGroupGif)
 
     e.Run(os.Getenv("API_PORT"))
 }
