@@ -2,6 +2,8 @@ package main
 
 import (
     "encoding/json"
+    "fmt"
+    "io/ioutil"
     "net/http"
     "os"
     "strconv"
@@ -10,11 +12,15 @@ import (
     mw "github.com/elvingm/cc-gifgroup-api/Godeps/_workspace/src/github.com/labstack/echo/middleware"
 
     "github.com/elvingm/cc-gifgroup-api/Godeps/_workspace/src/github.com/garyburd/redigo/redis"
+    "github.com/elvingm/cc-gifgroup-api/Godeps/_workspace/src/github.com/mitchellh/goamz/aws"
+    "github.com/elvingm/cc-gifgroup-api/Godeps/_workspace/src/github.com/mitchellh/goamz/s3"
+    "github.com/elvingm/cc-gifgroup-api/Godeps/_workspace/src/github.com/tmilewski/goenv"
 )
 
 type Group struct {
-    Id   int    `json:"id"`
-    Name string `json:"name"`
+    Id       int    `json:"id"`
+    Name     string `json:"name"`
+    ImageUrl string `json:"group_image_url"`
 }
 
 type Groups []Group
@@ -31,7 +37,11 @@ type ResponseTemplate struct {
 var groupSeq = 1 // default
 
 func init() { // connect to Redis on init, and get highest group ID
-    os.Setenv("redisPort", ":6379")
+    err := goenv.Load()
+    if err != nil {
+        fmt.Println("Missing environment variables file")
+        os.Exit(1)
+    }
 
     rC := RedisConnection()
     defer rC.Close()
@@ -48,25 +58,107 @@ func init() { // connect to Redis on init, and get highest group ID
 }
 
 func main() {
-    os.Setenv("apiPort", ":1323")
-
     e := echo.New()
 
     e.Use(mw.Logger())
     e.Use(mw.Recover())
 
     // Routes
-    e.Get("/groups", getAllGroups)
+    e.Get("/groups", GetGroups)
     e.Get("/groups/:id/gifs", getGroupGifs)
-    e.Post("/groups", createGroup)
+    e.Post("/groups", PostGroups)
     e.Post("/groups/:id/gifs", createGifInGroup)
 
-    e.Run(os.Getenv("apiPort"))
+    e.Run(os.Getenv("API_PORT"))
 }
 
-func getAllGroups(c *echo.Context) error {
-    var groups Groups
+func GetGroups(c *echo.Context) error {
+    res := &ResponseTemplate{}
+    res.Success = true
+    res.StatusCode = http.StatusOK
+    res.StatusText = http.StatusText(http.StatusOK)
+    res.ErrorCode = 0
+    res.ErrorText = "No Error"
+    
+    groups, err := FindAllGroups(res)
+    if err != nil {
+        res.StatusCode = http.StatusInternalServerError
+        res.StatusText = http.StatusText(http.StatusInternalServerError)
+        res.Success = false
+        res.ErrorCode = 3
+        res.ErrorText = "Server error finding groups"
 
+        return c.JSON(res.StatusCode, res)
+    }
+
+    res.Content = groups
+    return c.JSON(res.StatusCode, res)
+}
+
+func getGroupGifs(c *echo.Context) error {
+    res := ResponseTemplate{}
+
+    return c.JSON(http.StatusOK, res)
+}
+
+func PostGroups(c *echo.Context) error {
+    res := &ResponseTemplate{}
+    res.Success = true
+    res.StatusCode = http.StatusOK
+    res.ErrorCode = 0
+    res.StatusText = http.StatusText(http.StatusOK)
+    res.ErrorText = "No Error"
+
+    g := &Group{}
+    g.Id = groupSeq
+    if g.Name = "Unnamed Group"; len(c.Form("name")) > 0 {
+        g.Name = c.Form("name")
+    }
+
+    err := SaveGroupImage(c.Request(), g, res)
+    if err != nil {
+        return c.JSON(res.StatusCode, res)
+    }
+
+    err = SaveGroup(g, res)
+    if err != nil {
+        return c.JSON(res.StatusCode, res)
+    }
+
+    res.Content = g
+    return c.JSON(http.StatusOK, res)
+}
+
+func createGifInGroup(c *echo.Context) error {
+    res := ResponseTemplate{}
+
+    return c.JSON(http.StatusOK, res)
+}
+
+func RedisConnection() redis.Conn {
+    c, err := redis.Dial("tcp", os.Getenv("REDIS_PORT"))
+    ErrorHandler(err)
+    return c
+}
+
+// Handler
+func ErrorHandler(err error) {
+    if err != nil {
+        panic(err)
+    }
+}
+
+func S3Bucket() *s3.Bucket {
+    auth, err := aws.EnvAuth()
+    ErrorHandler(err)
+
+    client := s3.New(auth, aws.USEast)
+    b := client.Bucket("cc-gifgroup-api")
+    return b
+}
+
+func FindAllGroups(res *ResponseTemplate) (Groups, error) {
+    var groups Groups
     rC := RedisConnection()
     defer rC.Close()
 
@@ -85,25 +177,10 @@ func getAllGroups(c *echo.Context) error {
         groups = append(groups, group)
     }
 
-    res := ResponseTemplate{} // TODO: DRY out repetition of setting response values
-    res.Content = groups
-    res.ErrorCode = 0
-    res.ErrorText = "No Error"
-    res.StatusCode = http.StatusOK
-    res.StatusText = "OK"
-    res.Success = true
-    return c.JSON(http.StatusOK, res)
+    return groups, nil
 }
 
-func getGroupGifs(c *echo.Context) error {
-    res := ResponseTemplate{}
-
-    return c.JSON(http.StatusOK, res)
-}
-
-func createGroup(c *echo.Context) error {
-    g := Group{groupSeq, c.Form("name")}
-
+func SaveGroup(g *Group, res *ResponseTemplate) error {
     rC := RedisConnection()
     defer rC.Close()
 
@@ -111,37 +188,63 @@ func createGroup(c *echo.Context) error {
     ErrorHandler(err)
 
     _, err = rC.Do("SET", "group:"+strconv.Itoa(g.Id), gJson)
-    ErrorHandler(err)
+    if err != nil {
+        res.Success = false
+        res.StatusCode = http.StatusInternalServerError
+        res.StatusText = http.StatusText(http.StatusInternalServerError)
+        res.ErrorCode = 1 // app-specific, 1 = redis error
+        res.ErrorText = "Error saving group"
+
+        return err
+    }
 
     reply, err := redis.Int(rC.Do("INCR", "id:groups"))
-    ErrorHandler(err)
+    if err != nil {
+        res.Success = false
+        res.StatusCode = http.StatusInternalServerError
+        res.StatusText = http.StatusText(http.StatusInternalServerError)
+        res.ErrorCode = 1 // app-specific error code, 1 = image upload error
+        res.ErrorText = "Error incrementing id:groups count"
+
+        return err
+    }
 
     groupSeq = reply
-    res := ResponseTemplate{}
-    res.Content = g // returns group info that was saved - return total_count?
-    res.ErrorCode = 0
-    res.ErrorText = "No Error"
-    res.StatusCode = http.StatusOK
-    res.StatusText = "OK"
-    res.Success = true
-    return c.JSON(http.StatusOK, res)
+    return nil
 }
 
-func createGifInGroup(c *echo.Context) error {
-    res := ResponseTemplate{}
+func SaveGroupImage(req *http.Request, g *Group, res *ResponseTemplate) error {
+    bucket := S3Bucket()
+    req.ParseMultipartForm(16 << 20)
 
-    return c.JSON(http.StatusOK, res)
-}
-
-func RedisConnection() redis.Conn {
-    c, err := redis.Dial("tcp", os.Getenv("redisPort"))
-    ErrorHandler(err)
-    return c
-}
-
-// Handler
-func ErrorHandler(err error) {
+    image, header, err := req.FormFile("image")
     if err != nil {
-        panic(err)
+        g.ImageUrl = bucket.URL("default/group-default.gif")
+        return nil
     }
+
+    content, err := ioutil.ReadAll(image)
+    if err != nil {
+        res.Success = false
+        res.StatusCode = http.StatusBadRequest
+        res.StatusText = http.StatusText(http.StatusBadRequest)
+
+        return err
+    }
+
+    path := fmt.Sprintf("groups/%v/%v", g.Id, header.Filename)
+
+    err = bucket.Put(path, content, req.Header.Get("Content-Type"), s3.PublicRead)
+    if err != nil {
+        res.Success = false
+        res.StatusCode = http.StatusInternalServerError
+        res.StatusText = http.StatusText(http.StatusInternalServerError)
+        res.ErrorCode = 2 // app-specific error code, 2 = s3 image upload error
+        res.ErrorText = "Error uploading image to bucket"
+
+        return err
+    }
+
+    g.ImageUrl = bucket.URL(path)
+    return nil
 }
