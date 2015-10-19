@@ -16,7 +16,7 @@ import (
 	"encoding/base64"
 	"encoding/xml"
 	"fmt"
-	"github.com/elvingm/cc-gifgroup-api/Godeps/_workspace/src/github.com/mitchellh/goamz/aws"
+	"github.com/mitchellh/goamz/aws"
 	"io"
 	"io/ioutil"
 	"log"

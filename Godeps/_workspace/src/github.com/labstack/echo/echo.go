@@ -16,9 +16,9 @@ import (
 
 	"encoding/xml"
 
-	"github.com/elvingm/cc-gifgroup-api/Godeps/_workspace/src/github.com/bradfitz/http2"
-	"github.com/elvingm/cc-gifgroup-api/Godeps/_workspace/src/github.com/labstack/gommon/color"
-	"github.com/elvingm/cc-gifgroup-api/Godeps/_workspace/src/golang.org/x/net/websocket"
+	"github.com/bradfitz/http2"
+	"github.com/labstack/gommon/color"
+	"golang.org/x/net/websocket"
 )
 
 type (

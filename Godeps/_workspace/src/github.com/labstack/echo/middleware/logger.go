@@ -5,8 +5,8 @@ import (
 	"net"
 	"time"
 
-	"github.com/elvingm/cc-gifgroup-api/Godeps/_workspace/src/github.com/labstack/echo"
-	"github.com/elvingm/cc-gifgroup-api/Godeps/_workspace/src/github.com/labstack/gommon/color"
+	"github.com/labstack/echo"
+	"github.com/labstack/gommon/color"
 )
 
 func Logger() echo.MiddlewareFunc {

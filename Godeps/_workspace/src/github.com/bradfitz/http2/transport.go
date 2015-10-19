@@ -19,7 +19,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/elvingm/cc-gifgroup-api/Godeps/_workspace/src/github.com/bradfitz/http2/hpack"
+	"github.com/bradfitz/http2/hpack"
 )
 
 type Transport struct {

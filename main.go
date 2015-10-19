@@ -8,13 +8,13 @@ import (
     "os"
     "strconv"
 
-    "github.com/elvingm/cc-gifgroup-api/Godeps/_workspace/src/github.com/labstack/echo"
-    mw "github.com/elvingm/cc-gifgroup-api/Godeps/_workspace/src/github.com/labstack/echo/middleware"
+    "github.com/labstack/echo"
+    mw "github.com/labstack/echo/middleware"
 
-    "github.com/elvingm/cc-gifgroup-api/Godeps/_workspace/src/github.com/garyburd/redigo/redis"
-    "github.com/elvingm/cc-gifgroup-api/Godeps/_workspace/src/github.com/mitchellh/goamz/aws"
-    "github.com/elvingm/cc-gifgroup-api/Godeps/_workspace/src/github.com/mitchellh/goamz/s3"
-    "github.com/elvingm/cc-gifgroup-api/Godeps/_workspace/src/github.com/tmilewski/goenv"
+    "github.com/garyburd/redigo/redis"
+    "github.com/mitchellh/goamz/aws"
+    "github.com/mitchellh/goamz/s3"
+    "github.com/tmilewski/goenv"
 )
 
 type Group struct {
@@ -40,7 +40,7 @@ func init() { // connect to Redis on init, and get highest group ID
     err := goenv.Load()
     if err != nil {
         fmt.Println("Missing environment variables file")
-        os.Exit(1)
+        panic(err)
     }
 
     rC := RedisConnection()
