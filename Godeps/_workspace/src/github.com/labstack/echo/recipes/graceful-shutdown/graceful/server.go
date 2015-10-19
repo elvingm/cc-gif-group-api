@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/elvingm/cc-gifgroup-api/Godeps/_workspace/src/github.com/labstack/echo"
+	"github.com/labstack/echo"
 	"github.com/tylerb/graceful"
 )
 

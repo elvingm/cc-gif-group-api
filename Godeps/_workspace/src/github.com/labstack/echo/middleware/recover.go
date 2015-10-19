@@ -5,7 +5,7 @@ import (
 
 	"runtime"
 
-	"github.com/elvingm/cc-gifgroup-api/Godeps/_workspace/src/github.com/labstack/echo"
+	"github.com/labstack/echo"
 )
 
 // Recover returns a middleware which recovers from panics anywhere in the chain

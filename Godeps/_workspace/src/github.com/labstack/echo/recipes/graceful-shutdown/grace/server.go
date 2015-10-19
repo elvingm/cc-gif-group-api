@@ -3,8 +3,8 @@ package main
 import (
 	"net/http"
 
-	"github.com/elvingm/cc-gifgroup-api/Godeps/_workspace/src/github.com/labstack/echo"
 	"github.com/facebookgo/grace/gracehttp"
+	"github.com/labstack/echo"
 )
 
 func main() {

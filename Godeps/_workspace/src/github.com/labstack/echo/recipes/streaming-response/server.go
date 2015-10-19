@@ -6,7 +6,7 @@ import (
 
 	"encoding/json"
 
-	"github.com/elvingm/cc-gifgroup-api/Godeps/_workspace/src/github.com/labstack/echo"
+	"github.com/labstack/echo"
 )
 
 type (
