@@ -3,7 +3,9 @@
 This API is a basic solution for a game application where users create Gif Groups under a common theme. The API is written in Go and backed by Redis.
 Responses are in JSON, and responds to the following endpoints:
 
-- [GET] /groups - returns all groupings of gifs
+*Routes are prefixed with `/api/v{version_number}*
+
+- [GET] /api//groups - returns all groupings of gifs
 - [GET] /groups/{id}/gifs - returns all gifs for the group matching the id specified
 - [POST] /groups - creates a new group with name
 - [POST] /groups/{id}/gifs - creates a new gif within the group matching the id specified
@@ -34,12 +36,16 @@ Response format will be in JSON, and follow the structure below:
 
 ##### GET `/groups`
 Returns all groupings of gifs.
+e.g. `curl http://localhost:1323/api/v1/groups`
 
 ##### GET `/groups/{id}/gifs`
 Returns all gifs for grouping corresponding to the specified `{id}` parameter.
+e.g. `curl http://localhost:1323/api/v1/groups/1/groups`
 
 ##### POST `/groups`
 Creates a new gif grouping.
+e.g. `curl -F "name=[group_name]" -F "image=@[image_path] http://localhost:1323/api/v1/groups`
 
 ##### POST `/groups/{id}/gifs`
 Creates a new gif within grouping corresponding to the specified `{id}` parameter.
+e.g. `curl -F "image=@[image_path] http://localhost:1323/api/v1/groups/{id}/gifs`
