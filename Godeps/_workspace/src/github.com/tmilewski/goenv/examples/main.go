@@ -2,7 +2,7 @@ package main
 
 import "fmt"
 import "os"
-import "github.com/elvingm/cc-gifgroup-api/Godeps/_workspace/src/github.com/tmilewski/goenv"
+import "github.com/tmilewski/goenv"
 
 func init() {
 	err := goenv.Load()

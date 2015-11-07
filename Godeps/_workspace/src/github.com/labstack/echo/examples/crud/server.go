@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/elvingm/cc-gifgroup-api/Godeps/_workspace/src/github.com/labstack/echo"
-	mw "github.com/elvingm/cc-gifgroup-api/Godeps/_workspace/src/github.com/labstack/echo/middleware"
+	"github.com/labstack/echo"
+	mw "github.com/labstack/echo/middleware"
 )
 
 type (

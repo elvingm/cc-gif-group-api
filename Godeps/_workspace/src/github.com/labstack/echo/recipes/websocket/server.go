@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 
-	"github.com/elvingm/cc-gifgroup-api/Godeps/_workspace/src/github.com/labstack/echo"
-	mw "github.com/elvingm/cc-gifgroup-api/Godeps/_workspace/src/github.com/labstack/echo/middleware"
-	"github.com/elvingm/cc-gifgroup-api/Godeps/_workspace/src/golang.org/x/net/websocket"
+	"github.com/labstack/echo"
+	mw "github.com/labstack/echo/middleware"
+	"golang.org/x/net/websocket"
 )
 
 func main() {
